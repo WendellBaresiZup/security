@@ -1,18 +1,26 @@
 package br.com.zup.security.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import org.hibernate.annotations.UuidGenerator;
 
 @Entity
 @Table(name = "USERS")
 public class User {
     @Id
+    @UuidGenerator // Universally Unique Identifier(Identificador Unico Universalmente - Criado para evitar colisoes entre as entidades
+    private String uuid;
     private String userName;
     private String password;
 
     public User(){
+    }
 
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 
     public void setUserName(String userName) {
