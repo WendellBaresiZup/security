@@ -1,30 +1,38 @@
 package br.com.zup.security.infra;
-
-import br.com.zup.security.dto.Role;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 
 import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class JwtUtil {
 
     private static final String SECRET_KEY = "secreta";
 
-    private String createToken(String username, List<Role> roles, String department) {
-        String rolesAsString = roles.stream()
-                .map(Role::getRoleName).collect(Collectors.joining(","));
-
+    private String createToken(String username) {
                 return Jwts.builder()
                 .setSubject(username)
-                .claim("role", rolesAsString)
-                .claim("department", department)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 10 * 60 * 60 * 1000))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60))
                 .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
                 .compact();
+    }
+
+    public String extractUserName(String token){
+        return extractClaim(token, Claims::getSubject);
+    }
+
+    public Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
+    }
+
+    public <T> T extractClaim(String token, ClaimsResolver<T> claimsResolver){
+        final Claims claims = extractAllClaims(token);
+        return claimsResolver.resolve(claims);
+    }
+
+    public interface ClaimsResolver<T>{
+        T resolve(Claims claims);
     }
 
     public Claims extractAllClaims(String token) {
