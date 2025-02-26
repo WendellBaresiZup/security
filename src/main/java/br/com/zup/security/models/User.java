@@ -1,7 +1,10 @@
 package br.com.zup.security.models;
 
+import br.com.zup.security.dto.Role;
 import jakarta.persistence.*;
 import org.hibernate.annotations.UuidGenerator;
+
+import java.util.List;
 
 @Entity
 @Table(name = "USERS")
