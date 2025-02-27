@@ -2,20 +2,23 @@ package br.com.zup.security.infra;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.stereotype.Component;
 
 import java.util.Date;
-
+@Component
 public class JwtUtil {
 
     private static final String SECRET_KEY = "secreta";
 
-    private String createToken(String username) {
+    private String createToken(String username,String department, String role) {
                 return Jwts.builder()
                 .setSubject(username)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60))
-                .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
-                .compact();
+                        .claim("department", department)
+                        .claim("role" , role)
+                        .setIssuedAt(new Date())
+                        .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60))
+                        .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
+                        .compact();
     }
 
     public String extractUserName(String token){
