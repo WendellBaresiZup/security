@@ -16,6 +16,8 @@ import java.util.Optional;
 public class UserController {
     @Autowired
     private UserService userService;
+    @Autowired
+    private JwtUtil jwtUtil;
 
 
     @PostMapping("/register")
@@ -32,5 +34,14 @@ public class UserController {
             return ResponseEntity.ok(response);
         }
         return ResponseEntity.status(401).body(response);
+    }
+
+    @GetMapping
+    public ResponseEntity<?> getUser(@RequestHeader("Authorization") String token) {
+        token = token.substring(7);
+        String username = jwtUtil.extractUserName(token);
+        String department = (String) jwtUtil.extractAllClaims(token).get("department");
+
+        return ResponseEntity.ok(Map.of("message", "Bem-vindo , "  + username + "!", "department", department ));
     }
 }
