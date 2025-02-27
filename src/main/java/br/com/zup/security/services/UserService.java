@@ -2,27 +2,28 @@ package br.com.zup.security.services;
 
 import br.com.zup.security.dto.UserDTO;
 import br.com.zup.security.dto.UserLoginDTO;
+import br.com.zup.security.infra.JwtUtil;
 import br.com.zup.security.models.User;
 import br.com.zup.security.repositories.UserRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 @Service
 public class UserService {
     private UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final JwtUtil jwtUtil;
 
-    public UserService(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder){
+    public UserService(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder, JwtUtil jwtUtil){
         this.userRepository = userRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.jwtUtil = jwtUtil;
     }
 
-    public Optional<User> findByUserName(String userName) {
-        return userRepository.findByUserName(userName);
-    }
 
     public User saveUser(UserDTO userDTO){
         User user = new User();
@@ -35,16 +36,17 @@ public class UserService {
     }
 
     public Map<String, String> login(UserLoginDTO userLoginDTO) {
-        Optional<User> userOptional = userRepository.findByUserName(userLoginDTO.getUserName());
+        List<User> users = userRepository.findByUserName(userLoginDTO.getUserName());
 
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
+        if (!users.isEmpty()) {
+            User user = users.get(0);
 
             if (bCryptPasswordEncoder.matches(userLoginDTO.getPassword(), user.getPassword())) {
-                return Map.of("message", "usuário logado");
+                String token = jwtUtil.createToken(user.getUserName(), "IT", "ROLE_USER");
+                return Map.of("message", "usuário logado", "token", token);
             }
-            return Map.of("message","usuário inválido");
+            return Map.of("message", "usuário inválido");
         }
-        return Map.of("message", "userName inválido");
+        return Map.of("message", "useName inválido");
     }
 }
