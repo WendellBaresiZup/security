@@ -1,15 +1,14 @@
 package br.com.zup.security.controllers;
-
-import br.com.zup.security.dto.Role;
 import br.com.zup.security.dto.UserDTO;
+import br.com.zup.security.dto.UserLoginDTO;
 import br.com.zup.security.infra.JwtUtil;
+import br.com.zup.security.models.User;
 import br.com.zup.security.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -17,20 +16,21 @@ import java.util.Optional;
 public class UserController {
     @Autowired
     private UserService userService;
-    @Autowired
-    private JwtUtil jwtUtil;
 
+
+    @PostMapping("/register")
+    public ResponseEntity<?> registerUser(@RequestBody UserDTO userDTO) {
+        User savedUser = userService.saveUser(userDTO);
+        return ResponseEntity.ok("Usuario registrado com sucesso: " + savedUser.getUserName());
+    }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody UserDTO userDTO) {
-        Optional<User> userOptional = userService.findByUserName(userDTO.getUserName());
+    public ResponseEntity<?> login(@RequestBody UserLoginDTO userLoginDTO) {
+        Map<String, String> response = userService.login(userLoginDTO);
 
-        if (userOptional.isEmpty() || !userOptional.get().getPassword().equals(userDTO.getPassword())) {
-            return ResponseEntity.status(401).body("Credenciais inválidas");
+        if ("usuário logado".equals(response.get("message"))) {
+            return ResponseEntity.ok(response);
         }
-        User user = userOptional.get();
-        String token = jwtUtil.createToken(user.getUserName(), "IT", "ROLE_USER");
-
-        return ResponseEntity.ok().body("Bearer " + token);
+        return ResponseEntity.status(401).body(response);
     }
 }
